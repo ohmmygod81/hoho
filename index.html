@@ -57,8 +57,8 @@ body{
 
 /* ════ MAIN ════ */
 main{
-  padding-top:calc(var(--topbar-h) + env(safe-area-inset-top) + 12px);
-  padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 18px);
+  padding-top:calc(var(--topbar-h) + var(--tabbar-h) + env(safe-area-inset-top) + 12px);
+  padding-bottom:calc(env(safe-area-inset-bottom) + 18px);
   padding-left:14px; padding-right:14px;
   min-height:100vh;
 }
@@ -139,46 +139,11 @@ main{
 }
 .no-events{font-size:12.5px; color:var(--text3);}
 
-.cal-card{
-  background:var(--surface); border:1px solid var(--border); border-radius:14px;
-  padding:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04);
-}
-.cal-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
-.cal-nav-btn{
-  width:34px; height:34px; border-radius:8px; background:var(--bg2); border:1px solid var(--border);
-  color:var(--text2); font-size:15px; display:flex; align-items:center; justify-content:center;
-}
-.cal-nav-btn:active{background:var(--bg3);}
-.cal-title{font-size:15.5px; font-weight:700; color:var(--text);}
-.cal-today-btn{
-  font-size:11px; font-weight:600; color:var(--text2); background:var(--bg2);
-  border:1px solid var(--border2); border-radius:6px; padding:6px 10px;
-}
-.cal-week{display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:4px;}
-.cal-week span{text-align:center; font-size:10px; font-weight:700; color:var(--text3); padding:4px 0;}
-.cal-week span.sun{color:var(--red);}
-.cal-week span.sat{color:var(--blue);}
-.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
-.cal-cell{
-  aspect-ratio:1/1.05; background:var(--bg2); border:1px solid var(--border); border-radius:7px;
-  display:flex; flex-direction:column; align-items:center; padding-top:4px; position:relative;
-}
-.cal-cell.other{visibility:hidden;}
-.cal-cell.today{border:2px solid #ec4899;}
-.cal-cell.selected{border:2px solid var(--blue); background:var(--blue-dim);}
-.cal-num{font-size:11px; font-weight:600; color:var(--text2);}
-.cal-num.sun{color:var(--red);}
-.cal-num.sat{color:var(--blue);}
-.cal-dots{display:flex; gap:2px; margin-top:3px; flex-wrap:wrap; justify-content:center; padding:0 2px;}
-.cal-dot{width:5px; height:5px; border-radius:50%;}
-.cal-more{font-size:8px; color:var(--text3); font-weight:700;}
-
-/* ════ BOTTOM TAB BAR ════ */
+/* ════ TOP TAB BAR ════ */
 .tabbar{
-  position:fixed; bottom:0; left:0; right:0; z-index:200;
+  position:fixed; top:calc(var(--topbar-h) + env(safe-area-inset-top)); left:0; right:0; z-index:199;
   background:rgba(255,255,255,0.96); backdrop-filter:blur(10px);
-  border-top:1px solid var(--border);
-  padding-bottom:env(safe-area-inset-bottom);
+  border-bottom:1px solid var(--border);
   display:flex;
 }
 .tab-btn{
@@ -191,7 +156,7 @@ main{
 
 #toast-wrap{
   position:fixed; left:14px; right:14px; z-index:9999;
-  bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px);
+  bottom:calc(env(safe-area-inset-bottom) + 12px);
   display:flex; flex-direction:column; gap:8px; pointer-events:none; align-items:center;
 }
 .toast{
@@ -214,6 +179,15 @@ main{
       <button class="refresh-btn" onclick="manualRefresh()">⟳</button>
     </div>
   </div>
+</div>
+
+<div class="tabbar">
+  <button class="tab-btn active" id="tab-trouble" onclick="switchView('trouble')">
+    <span class="tab-icon">⚠️</span><span class="tab-label">트러블 내역</span>
+  </button>
+  <button class="tab-btn" id="tab-calendar" onclick="switchView('calendar')">
+    <span class="tab-icon">📆</span><span class="tab-label">근태/일정 달력</span>
+  </button>
 </div>
 
 <main>
@@ -255,32 +229,8 @@ main{
       <div class="today-label" id="selDateLabel">📅 오늘</div>
       <div class="today-events" id="selDateEvents"></div>
     </div>
-
-    <div class="cal-card">
-      <div class="cal-nav">
-        <button class="cal-nav-btn" onclick="calPrev()">‹</button>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <div class="cal-title" id="calMonth">2026년 6월</div>
-          <button class="cal-today-btn" onclick="calToday()">오늘</button>
-        </div>
-        <button class="cal-nav-btn" onclick="calNext()">›</button>
-      </div>
-      <div class="cal-week">
-        <span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="sat">토</span>
-      </div>
-      <div class="cal-grid" id="calGrid"></div>
-    </div>
   </div>
 </main>
-
-<div class="tabbar">
-  <button class="tab-btn active" id="tab-trouble" onclick="switchView('trouble')">
-    <span class="tab-icon">⚠️</span><span class="tab-label">트러블 내역</span>
-  </button>
-  <button class="tab-btn" id="tab-calendar" onclick="switchView('calendar')">
-    <span class="tab-icon">📆</span><span class="tab-label">근태/일정 달력</span>
-  </button>
-</div>
 
 <div id="toast-wrap"></div>
 
@@ -305,7 +255,6 @@ let attData = [];
 let schData = [];
 let trData = [];
 let currentView = 'trouble';
-let calDate = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Seoul'}));
 let selectedDate = getTodayKR();
 
 function getTodayKR(){
@@ -467,56 +416,8 @@ function renderSelectedDatePanel(){
 }
 
 function renderCalendar(){
-  const y = calDate.getFullYear();
-  const m = calDate.getMonth();
-  document.getElementById('calMonth').textContent = `${y}년 ${m+1}월`;
-
-  const fd = new Date(y,m,1).getDay();
-  const dm = new Date(y,m+1,0).getDate();
-  const today = getTodayKR();
-  let html = '';
-
-  for(let i=0;i<fd;i++) html += '<div class="cal-cell other"></div>';
-  for(let d=1; d<=dm; d++){
-    const date = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dow = new Date(y,m,d).getDay();
-    const {att, sch} = eventsForDate(date);
-    const total = att.length + sch.length;
-
-    let dots = '';
-    let dotCount = 0;
-    att.forEach(()=>{ if(dotCount<3){dots += `<div class="cal-dot" style="background:#ec4899;"></div>`; dotCount++;} });
-    sch.forEach(e=>{ if(dotCount<3){dots += `<div class="cal-dot" style="background:${CATEGORY_COLORS[e.category]||'#a78bfa'};"></div>`; dotCount++;} });
-    if(total>3) dots += `<div class="cal-more">+${total-3}</div>`;
-
-    const cls = ['cal-cell'];
-    if(date===today) cls.push('today');
-    if(date===selectedDate) cls.push('selected');
-
-    html += `<div class="${cls.join(' ')}" onclick="selectDay('${date}')">
-      <div class="cal-num ${dow===0?'sun':''}${dow===6?'sat':''}">${d}</div>
-      <div class="cal-dots">${dots}</div>
-    </div>`;
-  }
-  const rd = 42 - (fd+dm);
-  for(let i=0;i<rd;i++) html += '<div class="cal-cell other"></div>';
-
-  document.getElementById('calGrid').innerHTML = html;
-  renderSelectedDatePanel();
-}
-
-function selectDay(date){
-  selectedDate = date;
-  renderCalendar();
-}
-
-function calPrev(){ calDate.setMonth(calDate.getMonth()-1); renderCalendar(); }
-function calNext(){ calDate.setMonth(calDate.getMonth()+1); renderCalendar(); }
-function calToday(){
-  const now = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Seoul'}));
-  calDate = now;
   selectedDate = getTodayKR();
-  renderCalendar();
+  renderSelectedDatePanel();
 }
 </script>
 </body></html>
