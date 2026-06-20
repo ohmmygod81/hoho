@@ -18,7 +18,7 @@
   --blue:#3a65ac; --blue-lt:#4d7bc5; --blue-dim:rgba(58,101,172,0.10);
   --red:#b03c3c; --green:#4e8a70;
   --tr-eq:#dd6b20; --tr-sol:#3182ce; --tr-proc:#38a169;
-  --topbar-h:52px; --tabbar-h:58px;
+  --topbar-h:52px; --tabbar-h:66px;
 }
 ::-webkit-scrollbar{width:3px;height:3px;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
@@ -42,18 +42,17 @@ body{
   height:var(--topbar-h); display:flex; align-items:center; justify-content:space-between;
   padding:0 16px;
 }
-.topbar-title{font-family:'Syne',sans-serif; font-size:16px; font-weight:800; letter-spacing:0.2px;}
-.topbar-sub{font-size:10px; color:var(--text3); margin-top:1px; font-weight:500;}
+.topbar-left{display:flex; align-items:baseline; gap:10px; min-width:0;}
+.topbar-title{
+  font-family:'Malgun Gothic','맑은 고딕','Noto Sans KR',sans-serif; font-size:16px; font-weight:700;
+  letter-spacing:0.1px; flex-shrink:0; display:flex; align-items:center; gap:6px;
+}
+.topbar-title svg{flex-shrink:0;}
+.topbar-sub{font-size:10px; color:var(--text3); font-weight:400; white-space:nowrap;}
 .sync-wrap{display:flex; align-items:center; gap:8px;}
 .sync-dot{width:7px; height:7px; border-radius:50%; background:var(--text3); flex-shrink:0;}
 .sync-dot.on{background:var(--tr-proc); box-shadow:0 0 0 3px rgba(56,161,105,0.18);}
 .sync-dot.off{background:var(--red);}
-.refresh-btn{
-  width:36px; height:36px; border-radius:9px; border:1px solid var(--border2);
-  background:var(--bg2); display:flex; align-items:center; justify-content:center;
-  font-size:15px; color:var(--text2); cursor:pointer; transition:transform 0.3s, background 0.15s;
-}
-.refresh-btn:active{background:var(--bg3); transform:rotate(180deg);}
 
 /* ════ MAIN ════ */
 main{
@@ -81,8 +80,8 @@ main{
 .m-select{flex:1;}
 .m-input:focus,.m-select:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim);}
 .reset-btn{
-  flex-shrink:0; min-width:42px; min-height:42px; border-radius:9px; border:1px solid var(--border2);
-  background:var(--bg2); color:var(--text2); font-size:15px; cursor:pointer;
+  flex-shrink:0; padding:0 14px; min-height:42px; border-radius:9px; border:1px solid var(--border2);
+  background:var(--bg2); color:var(--text2); font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;
 }
 .reset-btn:active{background:var(--bg3);}
 
@@ -144,15 +143,27 @@ main{
   position:fixed; top:calc(var(--topbar-h) + env(safe-area-inset-top)); left:0; right:0; z-index:199;
   background:rgba(255,255,255,0.96); backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border);
-  display:flex;
+  display:flex; gap:6px; padding:8px 10px;
 }
 .tab-btn{
-  flex:1; height:var(--tabbar-h); display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:2px; background:none; border:none; color:var(--text3); font-family:inherit;
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px; background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  color:var(--text2); font-family:inherit; padding:8px 4px; transition:background 0.15s, border-color 0.15s;
 }
-.tab-btn .tab-icon{font-size:20px;}
-.tab-btn .tab-label{font-size:10.5px; font-weight:600;}
-.tab-btn.active{color:var(--blue);}
+.tab-btn .tab-icon{font-size:18px; line-height:1;}
+.tab-btn .tab-label{font-size:10px; font-weight:600;}
+.tab-btn.active{background:var(--surface); border-color:var(--border);}
+.tab-btn.active .tab-label{color:var(--blue);}
+.tab-btn:active{background:var(--bg3);}
+.restore-btn{
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px; background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  color:var(--text2); font-family:inherit; padding:8px 4px; transition:background 0.15s;
+}
+.restore-btn .tab-icon{font-size:18px; line-height:1; display:inline-block; transition:transform 0.4s;}
+.restore-btn .tab-label{font-size:10px; font-weight:600;}
+.restore-btn:active{background:var(--bg3);}
+.restore-btn.spinning .tab-icon{transform:rotate(360deg);}
 
 #toast-wrap{
   position:fixed; left:14px; right:14px; z-index:9999;
@@ -170,13 +181,18 @@ main{
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div>
-      <div class="topbar-title">📱 코팅반 모바일</div>
+    <div class="topbar-left">
+      <div class="topbar-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3a65ac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="2" width="12" height="20" rx="2"></rect>
+          <line x1="11" y1="18" x2="13" y2="18"></line>
+        </svg>
+        코팅반 모바일
+      </div>
       <div class="topbar-sub" id="syncLabel">연결 중...</div>
     </div>
     <div class="sync-wrap">
       <div class="sync-dot" id="syncDot"></div>
-      <button class="refresh-btn" onclick="manualRefresh()">⟳</button>
     </div>
   </div>
 </div>
@@ -188,6 +204,13 @@ main{
   <button class="tab-btn" id="tab-calendar" onclick="switchView('calendar')">
     <span class="tab-icon">📆</span><span class="tab-label">근태/일정 달력</span>
   </button>
+  <button class="restore-btn" onclick="document.getElementById('jsonRestoreInput').click()">
+    <span class="tab-icon">📥</span><span class="tab-label">데이터 업데이트</span>
+  </button>
+  <button class="restore-btn" id="refreshTabBtn" onclick="manualRefresh()">
+    <span class="tab-icon">🔄</span><span class="tab-label">새로고침</span>
+  </button>
+  <input type="file" id="jsonRestoreInput" accept="application/json,.json" style="display:none;" onchange="handleJsonRestore(event)">
 </div>
 
 <main>
@@ -207,7 +230,7 @@ main{
           <option value="A-6">A-6</option>
           <option value="고기능성레진">고기능성레진</option>
         </select>
-        <button class="reset-btn" onclick="resetFilters()">🔄</button>
+        <button class="reset-btn" onclick="resetFilters()">검색 초기화</button>
       </div>
       <input type="text" class="m-input" id="srch-keyword" placeholder="내용 키워드 검색" oninput="applyFilters()">
     </div>
@@ -316,6 +339,12 @@ fbDB.ref(FB_PATH).on('value', (snapshot)=>{
 });
 
 function manualRefresh(){
+  const btn = document.getElementById('refreshTabBtn');
+  if(btn){
+    btn.classList.remove('spinning');
+    void btn.offsetWidth; // restart animation
+    btn.classList.add('spinning');
+  }
   showToast('새로고침 중...');
   fbDB.ref(FB_PATH).once('value').then(snapshot=>{
     const data = snapshot.val();
@@ -329,6 +358,44 @@ function manualRefresh(){
   }).catch(()=>{
     showToast('새로고침에 실패했습니다');
   });
+}
+
+// ════ JSON 데이터 업데이트(복구) ════
+function handleJsonRestore(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      // 코팅반_통합관리 데이터 구조({att, sch, tr}) 또는 그 내부 값만 들어있는 경우 모두 지원
+      const payload = data[FB_PATH] ? data[FB_PATH] : data;
+
+      if(!payload || typeof payload !== 'object'){
+        showToast('JSON 형식을 확인해주세요');
+        return;
+      }
+
+      attData = Array.isArray(payload.att) ? payload.att : attData;
+      schData = Array.isArray(payload.sch) ? payload.sch : schData;
+      trData = Array.isArray(payload.tr) ? payload.tr : trData;
+
+      setSyncStatus(true, '로컬 JSON으로 업데이트됨');
+      renderAll();
+      showToast('데이터가 업데이트되었습니다');
+    }catch(err){
+      console.error('JSON 복구 실패:', err);
+      showToast('JSON 파일을 읽는 중 오류가 발생했습니다');
+    }finally{
+      event.target.value = '';
+    }
+  };
+  reader.onerror = ()=>{
+    showToast('파일을 읽을 수 없습니다');
+    event.target.value = '';
+  };
+  reader.readAsText(file);
 }
 
 // ════ TROUBLE LIST ════
