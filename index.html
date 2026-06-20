@@ -252,6 +252,10 @@ main{
       <div class="today-label" id="selDateLabel">📅 오늘</div>
       <div class="today-events" id="selDateEvents"></div>
     </div>
+    <div class="today-panel">
+      <div class="today-label" id="tmrDateLabel">📅 내일</div>
+      <div class="today-events" id="tmrDateEvents"></div>
+    </div>
   </div>
 </main>
 
@@ -278,12 +282,16 @@ let attData = [];
 let schData = [];
 let trData = [];
 let currentView = 'trouble';
-let selectedDate = getTodayKR();
 
 function getTodayKR(){
-  const now = new Date();
-  const kr = new Date(now.toLocaleString('en-US', {timeZone: 'Asia/Seoul'}));
-  return kr.toISOString().slice(0,10);
+  return new Intl.DateTimeFormat('en-CA', {timeZone: 'Asia/Seoul'}).format(new Date());
+}
+
+function addDaysToDateStr(dateStr, days){
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m-1, d));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().slice(0,10);
 }
 
 // ════ VIEW SWITCH ════
@@ -317,7 +325,7 @@ function renderAll(){
   document.getElementById('cnt-proc').textContent = trData.filter(r=>r.type==='공정').length;
   document.getElementById('cnt-total').textContent = trData.length;
   applyFilters();
-  renderCalendar();
+  renderSchedulePanels();
 }
 
 fbDB.ref(FB_PATH).on('value', (snapshot)=>{
@@ -338,6 +346,21 @@ fbDB.ref(FB_PATH).on('value', (snapshot)=>{
   showToast('클라우드 연결에 실패했습니다');
 });
 
+function refetchData(silent){
+  return fbDB.ref(FB_PATH).once('value').then(snapshot=>{
+    const data = snapshot.val();
+    if(data){
+      attData = data.att || [];
+      schData = data.sch || [];
+      trData = data.tr || [];
+    }
+    renderAll();
+    if(!silent) showToast('최신 데이터로 업데이트되었습니다');
+  }).catch(()=>{
+    if(!silent) showToast('새로고침에 실패했습니다');
+  });
+}
+
 function manualRefresh(){
   const btn = document.getElementById('refreshTabBtn');
   if(btn){
@@ -346,18 +369,7 @@ function manualRefresh(){
     btn.classList.add('spinning');
   }
   showToast('새로고침 중...');
-  fbDB.ref(FB_PATH).once('value').then(snapshot=>{
-    const data = snapshot.val();
-    if(data){
-      attData = data.att || [];
-      schData = data.sch || [];
-      trData = data.tr || [];
-    }
-    renderAll();
-    showToast('최신 데이터로 업데이트되었습니다');
-  }).catch(()=>{
-    showToast('새로고침에 실패했습니다');
-  });
+  refetchData(false);
 }
 
 // ════ JSON 데이터 업데이트(복구) ════
@@ -463,13 +475,13 @@ function eventsForDate(date){
   return {att, sch};
 }
 
-function renderSelectedDatePanel(){
-  const {att, sch} = eventsForDate(selectedDate);
-  const d = new Date(selectedDate + 'T00:00:00');
+function renderDateBlock(date, labelElId, eventsElId, isToday){
+  const {att, sch} = eventsForDate(date);
+  const d = new Date(date + 'T00:00:00');
   const dayNames = ['일','월','화','수','목','금','토'];
-  const isToday = selectedDate === getTodayKR();
-  const label = `${isToday ? '오늘 · ' : ''}${d.getMonth()+1}월 ${d.getDate()}일 (${dayNames[d.getDay()]})`;
-  document.getElementById('selDateLabel').textContent = `📅 ${label}`;
+  const prefix = isToday ? '오늘' : '내일';
+  const label = `${prefix} · ${d.getMonth()+1}월 ${d.getDate()}일 (${dayNames[d.getDay()]})`;
+  document.getElementById(labelElId).textContent = `📅 ${label}`;
 
   let html = '';
   att.forEach(e=>{
@@ -479,12 +491,28 @@ function renderSelectedDatePanel(){
     const c = CATEGORY_COLORS[e.category] || '#a78bfa';
     html += `<div class="event-chip" style="border-left-color:${c};">[${e.category}] ${e.name}${e.content ? ' - ' + e.content : ''}</div>`;
   });
-  document.getElementById('selDateEvents').innerHTML = html || `<div class="no-events">일정이 없습니다.</div>`;
+  document.getElementById(eventsElId).innerHTML = html || `<div class="no-events">일정이 없습니다.</div>`;
 }
 
-function renderCalendar(){
-  selectedDate = getTodayKR();
-  renderSelectedDatePanel();
+function renderSchedulePanels(){
+  const todayStr = getTodayKR();
+  const tomorrowStr = addDaysToDateStr(todayStr, 1);
+
+  renderDateBlock(todayStr, 'selDateLabel', 'selDateEvents', true);
+  renderDateBlock(tomorrowStr, 'tmrDateLabel', 'tmrDateEvents', false);
 }
+
+// 아이폰 PWA(홈 화면 추가)는 백그라운드에 있다가 복귀해도 페이지가 새로고침되지 않는 경우가 있고,
+// 오래 백그라운드에 있으면 실시간 연결(웹소켓)이 끊길 수 있음 -> 화면이 다시 보일 때마다 조용히 강제 재동기화
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible'){
+    renderSchedulePanels();
+    refetchData(true);
+  }
+});
+window.addEventListener('pageshow', ()=>{ renderSchedulePanels(); refetchData(true); });
+window.addEventListener('focus', ()=>{ renderSchedulePanels(); refetchData(true); });
+setInterval(renderSchedulePanels, 60000); // 1분마다 날짜만 재계산 (자정 넘어가도 자동 반영)
+setInterval(()=>refetchData(true), 30 * 60000); // 30분마다 안전망 재동기화 (실시간 연결이 끊겼을 경우 대비)
 </script>
 </body></html>
