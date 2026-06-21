@@ -204,13 +204,9 @@ main{
   <button class="tab-btn" id="tab-calendar" onclick="switchView('calendar')">
     <span class="tab-icon">📆</span><span class="tab-label">근태/일정 달력</span>
   </button>
-  <button class="restore-btn" onclick="document.getElementById('jsonRestoreInput').click()">
-    <span class="tab-icon">📥</span><span class="tab-label">데이터 업데이트</span>
-  </button>
   <button class="restore-btn" id="refreshTabBtn" onclick="manualRefresh()">
     <span class="tab-icon">🔄</span><span class="tab-label">새로고침</span>
   </button>
-  <input type="file" id="jsonRestoreInput" accept="application/json,.json" style="display:none;" onchange="handleJsonRestore(event)">
 </div>
 
 <main>
